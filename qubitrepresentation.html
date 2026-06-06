@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Representing Qubits: State Vectors, Bloch Sphere & Dirac Notation</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --panel: #111827;
+      --panel-2: #1e293b;
+      --text: #e5e7eb;
+      --muted: #94a3b8;
+      --accent: #38bdf8;
+      --accent-2: #a78bfa;
+      --accent-3: #34d399;
+      --warning: #fbbf24;
+      --line: rgba(255,255,255,0.14);
+      --shadow: 0 24px 60px rgba(0,0,0,0.35);
+      --radius: 22px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 12% 8%, rgba(56,189,248,0.2), transparent 32%),
+        radial-gradient(circle at 85% 12%, rgba(167,139,250,0.18), transparent 34%),
+        linear-gradient(135deg, #020617 0%, #0f172a 48%, #111827 100%);
+      min-height: 100vh;
+    }
+
+    header {
+      padding: 72px 24px 42px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    header::after {
+      content: "";
+      position: absolute;
+      inset: auto 10% -80px 10%;
+      height: 160px;
+      background: radial-gradient(ellipse at center, rgba(56,189,248,0.28), transparent 70%);
+      filter: blur(12px);
+      pointer-events: none;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      gap: 8px;
+      align-items: center;
+      padding: 8px 14px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      color: #bae6fd;
+      background: rgba(15,23,42,0.6);
+      backdrop-filter: blur(16px);
+      font-size: 0.92rem;
+    }
+
+    h1 {
+      font-size: clamp(2.6rem, 7vw, 6.2rem);
+      line-height: 0.95;
+      margin: 24px auto 20px;
+      max-width: 1050px;
+      letter-spacing: -0.07em;
+    }
+
+    .gradient-text {
+      background: linear-gradient(90deg, #e0f2fe, #38bdf8, #c4b5fd, #a7f3d0);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .hero-copy {
+      max-width: 780px;
+      margin: 0 auto;
+      color: var(--muted);
+      font-size: 1.17rem;
+      line-height: 1.75;
+    }
+
+    nav {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 12px;
+      margin-top: 34px;
+    }
+
+    nav a {
+      color: var(--text);
+      text-decoration: none;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.05);
+      padding: 12px 16px;
+      border-radius: 999px;
+      transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+    }
+
+    nav a:hover {
+      transform: translateY(-2px);
+      background: rgba(56,189,248,0.12);
+      border-color: rgba(56,189,248,0.45);
+    }
+
+    main {
+      width: min(1180px, calc(100% - 36px));
+      margin: 0 auto 80px;
+    }
+
+    section {
+      margin: 28px 0;
+      padding: clamp(22px, 4vw, 40px);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: rgba(15,23,42,0.68);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(18px);
+    }
+
+    .two-col {
+      display: grid;
+      grid-template-columns: 1.05fr 0.95fr;
+      gap: 26px;
+      align-items: center;
+    }
+
+    h2 {
+      font-size: clamp(1.7rem, 4vw, 3rem);
+      letter-spacing: -0.04em;
+      margin: 0 0 16px;
+    }
+
+    h3 {
+      color: #e0f2fe;
+      margin-top: 0;
+      font-size: 1.25rem;
+    }
+
+    p, li {
+      color: var(--muted);
+      line-height: 1.75;
+      font-size: 1.03rem;
+    }
+
+    strong { color: #f8fafc; }
+
+    .formula {
+      overflow-x: auto;
+      margin: 18px 0;
+      padding: 18px;
+      border-radius: 16px;
+      background: linear-gradient(135deg, rgba(56,189,248,0.1), rgba(167,139,250,0.1));
+      border: 1px solid rgba(255,255,255,0.12);
+      color: #f8fafc;
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      font-size: clamp(1rem, 2.2vw, 1.35rem);
+      white-space: nowrap;
+    }
+
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 18px;
+    }
+
+    .card {
+      padding: 22px;
+      border-radius: 20px;
+      border: 1px solid var(--line);
+      background: rgba(30,41,59,0.78);
+    }
+
+    .tag {
+      display: inline-block;
+      margin-bottom: 12px;
+      padding: 5px 10px;
+      border-radius: 999px;
+      background: rgba(56,189,248,0.12);
+      color: #bae6fd;
+      font-size: 0.8rem;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+    }
+
+    .visual-panel {
+      min-height: 360px;
+      display: grid;
+      place-items: center;
+      border-radius: 22px;
+      border: 1px solid var(--line);
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03)),
+        radial-gradient(circle at 50% 42%, rgba(56,189,248,0.18), transparent 52%);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .ket-stack {
+      display: grid;
+      gap: 16px;
+      width: min(420px, 100%);
+      padding: 20px;
+    }
+
+    .ket-row {
+      display: grid;
+      grid-template-columns: 72px 1fr;
+      gap: 14px;
+      align-items: center;
+      padding: 16px;
+      border-radius: 18px;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(2,6,23,0.42);
+    }
+
+    .ket-symbol {
+      font-size: 1.8rem;
+      color: #f8fafc;
+      text-align: center;
+    }
+
+    .bar {
+      height: 12px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.08);
+      overflow: hidden;
+    }
+
+    .bar span {
+      display: block;
+      height: 100%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--accent), var(--accent-2));
+    }
+
+    .bloch-wrap {
+      width: min(420px, 92vw);
+      aspect-ratio: 1;
+      position: relative;
+      display: grid;
+      place-items: center;
+    }
+
+    .sphere {
+      width: 76%;
+      height: 76%;
+      border-radius: 50%;
+      border: 2px solid rgba(186,230,253,0.5);
+      background:
+        radial-gradient(circle at 35% 28%, rgba(255,255,255,0.18), transparent 18%),
+        radial-gradient(circle at center, rgba(56,189,248,0.09), rgba(167,139,250,0.08) 58%, rgba(2,6,23,0.1));
+      position: relative;
+      box-shadow: inset -28px -32px 55px rgba(2,6,23,0.5), 0 0 70px rgba(56,189,248,0.2);
+    }
+
+    .sphere::before, .sphere::after {
+      content: "";
+      position: absolute;
+      inset: 50% 8% auto 8%;
+      border-top: 1px dashed rgba(255,255,255,0.34);
+    }
+
+    .sphere::after {
+      inset: 8% auto 8% 50%;
+      border-top: none;
+      border-left: 1px dashed rgba(255,255,255,0.34);
+    }
+
+    .equator {
+      position: absolute;
+      left: 8%; right: 8%; top: 50%;
+      height: 34%;
+      border: 1px dashed rgba(255,255,255,0.28);
+      border-radius: 50%;
+      transform: translateY(-50%) rotateX(68deg);
+    }
+
+    .axis-label {
+      position: absolute;
+      color: #e0f2fe;
+      font-weight: 700;
+      font-size: 0.92rem;
+    }
+    .z-plus { top: 1%; left: 50%; transform: translateX(-50%); }
+    .z-minus { bottom: 1%; left: 50%; transform: translateX(-50%); }
+    .x-plus { right: 1%; top: 50%; transform: translateY(-50%); }
+    .y-plus { left: 13%; bottom: 18%; }
+
+    .state-vector {
+      position: absolute;
+      left: 50%;
+      bottom: 50%;
+      width: 4px;
+      height: 33%;
+      border-radius: 999px;
+      background: linear-gradient(to top, var(--warning), #fef3c7);
+      transform-origin: bottom center;
+      transform: rotate(42deg);
+      box-shadow: 0 0 28px rgba(251,191,36,0.6);
+    }
+
+    .state-vector::before {
+      content: "";
+      position: absolute;
+      top: -8px;
+      left: 50%;
+      transform: translateX(-50%);
+      border-left: 8px solid transparent;
+      border-right: 8px solid transparent;
+      border-bottom: 14px solid #fef3c7;
+    }
+
+    .callout {
+      border-left: 4px solid var(--accent-3);
+      background: rgba(52,211,153,0.08);
+      padding: 16px 18px;
+      border-radius: 0 16px 16px 0;
+      margin-top: 18px;
+    }
+
+    .interactive {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 22px;
+      align-items: stretch;
+    }
+
+    label {
+      display: block;
+      color: #f8fafc;
+      font-weight: 700;
+      margin: 14px 0 8px;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--accent);
+    }
+
+    .output {
+      padding: 20px;
+      border-radius: 18px;
+      background: rgba(2,6,23,0.48);
+      border: 1px solid var(--line);
+    }
+
+    .output code {
+      display: block;
+      color: #dbeafe;
+      white-space: pre-wrap;
+      line-height: 1.8;
+      font-size: 1rem;
+    }
+
+    .mini-sphere {
+      height: 310px;
+    }
+
+    .mini-sphere .state-vector {
+      transform: rotate(var(--angle, 42deg));
+    }
+
+    .comparison {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 18px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      overflow: hidden;
+      border-radius: 18px;
+      border: 1px solid var(--line);
+      background: rgba(2,6,23,0.28);
+    }
+
+    th, td {
+      padding: 16px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      color: var(--muted);
+      vertical-align: top;
+    }
+
+    th { color: #e0f2fe; background: rgba(56,189,248,0.08); }
+    tr:last-child td { border-bottom: none; }
+
+    footer {
+      text-align: center;
+      color: var(--muted);
+      padding: 36px 20px 58px;
+    }
+
+    .pill-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      padding: 0;
+      list-style: none;
+    }
+
+    .pill-list li {
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 9px 13px;
+      background: rgba(255,255,255,0.05);
+      line-height: 1.2;
+    }
+
+    @media (max-width: 860px) {
+      .two-col, .interactive, .comparison, .card-grid {
+        grid-template-columns: 1fr;
+      }
+      header { padding-top: 48px; }
+      .visual-panel { min-height: 300px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="eyebrow">⚛️ Quantum computing foundations</div>
+    <h1><span class="gradient-text">Representing Qubits</span><br />from vectors to spheres</h1>
+    <p class="hero-copy">A qubit is the quantum analogue of a bit. Instead of only being 0 or 1, a qubit is represented by a normalized vector in a two-dimensional complex vector space. Dirac notation gives us a compact language, while the Bloch sphere gives us a geometric intuition.</p>
+    <nav aria-label="Page sections">
+      <a href="#state-vectors">State vectors</a>
+      <a href="#dirac">Dirac notation</a>
+      <a href="#bloch">Bloch sphere</a>
+      <a href="#interactive">Interactive demo</a>
+      <a href="#summary">Summary</a>
+    </nav>
+  </header>
+
+  <main>
+    <section id="state-vectors" class="two-col">
+      <div>
+        <h2>1. Qubits as state vectors</h2>
+        <p>A single qubit state is written as a linear combination of two basis states: <strong>|0⟩</strong> and <strong>|1⟩</strong>. The coefficients are complex numbers called <strong>amplitudes</strong>.</p>
+        <div class="formula">|ψ⟩ = α|0⟩ + β|1⟩ &nbsp;&nbsp; where &nbsp;&nbsp; |α|² + |β|² = 1</div>
+        <p>The normalization condition means the probabilities add to 1. When measured in the computational basis, the probability of seeing 0 is <strong>|α|²</strong>, and the probability of seeing 1 is <strong>|β|²</strong>.</p>
+        <div class="callout"><strong>Key idea:</strong> Amplitudes can be negative or complex. Probabilities are always real, nonnegative numbers obtained from squared magnitudes.</div>
+      </div>
+      <div class="visual-panel" aria-label="Amplitude bars for a qubit state">
+        <div class="ket-stack">
+          <div class="ket-row">
+            <div class="ket-symbol">|0⟩</div>
+            <div>
+              <p style="margin:0 0 8px; color:#bae6fd;">Amplitude α</p>
+              <div class="bar"><span style="width:72%"></span></div>
+            </div>
+          </div>
+          <div class="ket-row">
+            <div class="ket-symbol">|1⟩</div>
+            <div>
+              <p style="margin:0 0 8px; color:#ddd6fe;">Amplitude β</p>
+              <div class="bar"><span style="width:48%; background:linear-gradient(90deg,#a78bfa,#34d399)"></span></div>
+            </div>
+          </div>
+          <p style="margin:0; text-align:center;">A vector stores both magnitude and phase information.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="dirac">
+      <h2>2. Dirac notation: kets, bras, and inner products</h2>
+      <div class="card-grid">
+        <article class="card">
+          <span class="tag">Ket</span>
+          <h3>|ψ⟩</h3>
+          <p>A ket represents a quantum state vector. For a qubit, it can be viewed as a two-entry column vector.</p>
+          <div class="formula">|ψ⟩ = [ α ; β ]</div>
+        </article>
+        <article class="card">
+          <span class="tag">Bra</span>
+          <h3>⟨ψ|</h3>
+          <p>A bra is the conjugate transpose of a ket. It turns the column vector into a row vector and conjugates complex entries.</p>
+          <div class="formula">⟨ψ| = [ α* &nbsp; β* ]</div>
+        </article>
+        <article class="card">
+          <span class="tag">Inner product</span>
+          <h3>⟨φ|ψ⟩</h3>
+          <p>The inner product measures overlap between states. Orthogonal states have zero overlap.</p>
+          <div class="formula">⟨0|1⟩ = 0, &nbsp; ⟨0|0⟩ = 1</div>
+        </article>
+      </div>
+      <div class="callout"><strong>Notation shortcut:</strong> Dirac notation is especially useful because the same symbols work for simple qubits, multi-qubit systems, gates, measurements, and quantum algorithms.</div>
+    </section>
+
+    <section id="bloch" class="two-col">
+      <div class="visual-panel">
+        <div class="bloch-wrap" role="img" aria-label="Stylized Bloch sphere with state vector">
+          <span class="axis-label z-plus">|0⟩ / +z</span>
+          <span class="axis-label z-minus">|1⟩ / −z</span>
+          <span class="axis-label x-plus">+x</span>
+          <span class="axis-label y-plus">+y</span>
+          <div class="sphere">
+            <div class="equator"></div>
+            <div class="state-vector"></div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <h2>3. Bloch sphere intuition</h2>
+        <p>Every pure single-qubit state can be represented as a point on the surface of a sphere. The north pole is <strong>|0⟩</strong>, the south pole is <strong>|1⟩</strong>, and superposition states live elsewhere on the surface.</p>
+        <div class="formula">|ψ⟩ = cos(θ/2)|0⟩ + e<sup>iφ</sup> sin(θ/2)|1⟩</div>
+        <p>The angle <strong>θ</strong> controls how much probability lies in |0⟩ versus |1⟩. The angle <strong>φ</strong> captures relative phase, which is invisible in one measurement basis but crucial for interference.</p>
+        <ul class="pill-list">
+          <li>North pole: |0⟩</li>
+          <li>South pole: |1⟩</li>
+          <li>Equator: equal probabilities</li>
+          <li>Azimuth: relative phase</li>
+        </ul>
+      </div>
+    </section>
+
+    <section id="interactive">
+      <h2>4. Interactive state builder</h2>
+      <p>Move the sliders to see how the Bloch angles change the state expression and measurement probabilities.</p>
+      <div class="interactive">
+        <div class="card">
+          <label for="theta">θ: polar angle <span id="thetaLabel">60°</span></label>
+          <input id="theta" type="range" min="0" max="180" value="60" />
+          <label for="phi">φ: phase angle <span id="phiLabel">45°</span></label>
+          <input id="phi" type="range" min="0" max="360" value="45" />
+          <div class="output" style="margin-top:18px;">
+            <code id="stateOutput"></code>
+          </div>
+        </div>
+        <div class="visual-panel mini-sphere">
+          <div class="bloch-wrap" style="width:300px;">
+            <span class="axis-label z-plus">|0⟩</span>
+            <span class="axis-label z-minus">|1⟩</span>
+            <div class="sphere">
+              <div class="equator"></div>
+              <div id="demoVector" class="state-vector"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="summary">
+      <h2>5. One-page summary</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Representation</th>
+            <th>What it emphasizes</th>
+            <th>Example</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>State vector</td>
+            <td>Numerical amplitudes and probability calculations</td>
+            <td>[α; β] with |α|² + |β|² = 1</td>
+          </tr>
+          <tr>
+            <td>Dirac notation</td>
+            <td>Compact symbolic notation for states, gates, and measurements</td>
+            <td>|ψ⟩ = α|0⟩ + β|1⟩</td>
+          </tr>
+          <tr>
+            <td>Bloch sphere</td>
+            <td>Geometric intuition for pure single-qubit states</td>
+            <td>Angles θ and φ define a point on the sphere</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="comparison" style="margin-top:20px;">
+        <div class="card">
+          <h3>Measurement reminder</h3>
+          <p>Measurement does not reveal the amplitudes directly. It produces a classical outcome, such as 0 or 1, according to the probabilities determined by the state.</p>
+        </div>
+        <div class="card">
+          <h3>Phase reminder</h3>
+          <p>Two states with the same measurement probabilities can behave differently in a circuit because relative phase affects interference.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    Built as a standalone educational webpage. Open this HTML file in any modern browser.
+  </footer>
+
+  <script>
+    const theta = document.getElementById('theta');
+    const phi = document.getElementById('phi');
+    const thetaLabel = document.getElementById('thetaLabel');
+    const phiLabel = document.getElementById('phiLabel');
+    const stateOutput = document.getElementById('stateOutput');
+    const demoVector = document.getElementById('demoVector');
+
+    function round(value) {
+      return Math.round(value * 1000) / 1000;
+    }
+
+    function update() {
+      const tDeg = Number(theta.value);
+      const pDeg = Number(phi.value);
+      const t = tDeg * Math.PI / 180;
+      const p0 = Math.cos(t / 2) ** 2;
+      const p1 = Math.sin(t / 2) ** 2;
+      const a = Math.cos(t / 2);
+      const b = Math.sin(t / 2);
+
+      thetaLabel.textContent = `${tDeg}°`;
+      phiLabel.textContent = `${pDeg}°`;
+      stateOutput.textContent =
+`|ψ⟩ = cos(${tDeg}°/2)|0⟩ + e^(i·${pDeg}°)sin(${tDeg}°/2)|1⟩
+
+Approximate amplitudes:
+α = ${round(a)}
+β magnitude = ${round(b)} with relative phase ${pDeg}°
+
+Measurement probabilities:
+P(0) = ${round(p0 * 100)}%
+P(1) = ${round(p1 * 100)}%`;
+
+      const visualAngle = -10 + (tDeg / 180) * 115;
+      demoVector.style.transform = `rotate(${visualAngle}deg)`;
+      demoVector.style.height = `${22 + (Math.sin(t) * 14)}%`;
+    }
+
+    theta.addEventListener('input', update);
+    phi.addEventListener('input', update);
+    update();
+  </script>
+</body>
+</html>

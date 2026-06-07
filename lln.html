@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Law of Large Numbers Explorer</title>
+
+  <style>
+    :root {
+      --bg: #071018;
+      --panel: #0f1f2e;
+      --panel-light: #17314a;
+      --accent: #38bdf8;
+      --accent-2: #22c55e;
+      --accent-3: #facc15;
+      --text: #f8fafc;
+      --muted: #b6c7d6;
+      --danger: #fb7185;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      min-height: 100vh;
+      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(56, 189, 248, 0.28), transparent 35%),
+        radial-gradient(circle at bottom right, rgba(34, 197, 94, 0.2), transparent 35%),
+        var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    header {
+      text-align: center;
+      padding: 70px 24px 38px;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 8px 14px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      color: var(--accent-2);
+      font-size: 0.85rem;
+      font-weight: 700;
+      margin-bottom: 18px;
+    }
+
+    h1 {
+      font-size: clamp(2.4rem, 6vw, 5rem);
+      line-height: 1;
+      letter-spacing: -0.06em;
+      margin-bottom: 20px;
+    }
+
+    .hero-text {
+      max-width: 850px;
+      margin: 0 auto;
+      color: var(--muted);
+      font-size: 1.1rem;
+    }
+
+    main {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    .tabs {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 32px;
+    }
+
+    .tab-btn {
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      background: rgba(255, 255, 255, 0.07);
+      color: var(--text);
+      padding: 12px 18px;
+      border-radius: 999px;
+      cursor: pointer;
+      font-weight: 700;
+      transition: all 0.2s ease;
+    }
+
+    .tab-btn:hover,
+    .tab-btn.active {
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      color: #041018;
+      transform: translateY(-2px);
+    }
+
+    .section {
+      display: none;
+      animation: fadeIn 0.4s ease;
+    }
+
+    .section.active {
+      display: block;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 22px;
+    }
+
+    .card {
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.035));
+      border: 1px solid rgba(255, 255, 255, 0.13);
+      border-radius: 24px;
+      padding: 26px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.28);
+      transition: transform 0.25s ease, border-color 0.25s ease;
+    }
+
+    .card:hover {
+      transform: translateY(-6px);
+      border-color: rgba(56, 189, 248, 0.55);
+    }
+
+    .card h2,
+    .card h3 {
+      margin-bottom: 12px;
+    }
+
+    .muted {
+      color: var(--muted);
+    }
+
+    .symbol {
+      width: 64px;
+      height: 64px;
+      border-radius: 18px;
+      display: grid;
+      place-items: center;
+      margin-bottom: 18px;
+      font-size: 1.5rem;
+      font-weight: 900;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      color: #041018;
+      box-shadow: 0 0 28px rgba(56, 189, 248, 0.35);
+    }
+
+    .formula {
+      margin-top: 16px;
+      padding: 14px;
+      border-radius: 14px;
+      background: rgba(0, 0, 0, 0.25);
+      color: var(--accent-3);
+      font-family: "SFMono-Regular", Consolas, monospace;
+      overflow-x: auto;
+    }
+
+    .simulator {
+      display: grid;
+      grid-template-columns: 1fr 1.1fr;
+      gap: 24px;
+      align-items: center;
+    }
+
+    .coin-area {
+      display: grid;
+      place-items: center;
+      gap: 16px;
+    }
+
+    .coin {
+      width: 150px;
+      height: 150px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      font-size: 3rem;
+      font-weight: 900;
+      color: #041018;
+      background: linear-gradient(135deg, var(--accent-3), #f97316);
+      box-shadow: 0 20px 50px rgba(250, 204, 21, 0.24);
+      transition: transform 0.35s ease;
+    }
+
+    .coin.flip {
+      transform: rotateY(180deg) scale(1.08);
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .control-btn {
+      border: none;
+      border-radius: 14px;
+      padding: 11px 14px;
+      background: var(--panel-light);
+      color: var(--text);
+      cursor: pointer;
+      font-weight: 800;
+    }
+
+    .control-btn:hover {
+      background: var(--accent);
+      color: #041018;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-top: 18px;
+    }
+
+    .stat {
+      padding: 14px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .stat strong {
+      display: block;
+      font-size: 1.35rem;
+      color: var(--accent-2);
+    }
+
+    .bar-wrap {
+      margin-top: 18px;
+      background: rgba(255, 255, 255, 0.09);
+      height: 18px;
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .bar {
+      height: 100%;
+      width: 50%;
+      background: linear-gradient(90deg, var(--accent), var(--accent-2));
+      transition: width 0.35s ease;
+    }
+
+    .chart {
+      margin-top: 20px;
+      height: 230px;
+      border-radius: 20px;
+      padding: 14px;
+      background:
+        linear-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.06) 1px, transparent 1px),
+        rgba(0, 0, 0, 0.18);
+      background-size: 100% 25%, 12.5% 100%;
+      position: relative;
+      overflow: hidden;
+    }
+
+    svg {
+      width: 100%;
+      height: 100%;
+    }
+
+    .line-true {
+      stroke: rgba(250, 204, 21, 0.9);
+      stroke-width: 2;
+      stroke-dasharray: 6;
+    }
+
+    .line-sample {
+      stroke: var(--accent-2);
+      stroke-width: 3;
+      fill: none;
+    }
+
+    .timeline {
+      display: grid;
+      gap: 18px;
+    }
+
+    .step {
+      display: grid;
+      grid-template-columns: 44px 1fr;
+      gap: 16px;
+      align-items: start;
+    }
+
+    .number {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      color: #041018;
+      font-weight: 900;
+    }
+
+    .warning {
+      border-color: rgba(251, 113, 133, 0.45);
+    }
+
+    .warning .symbol {
+      background: linear-gradient(135deg, var(--danger), var(--accent-3));
+    }
+
+    footer {
+      text-align: center;
+      padding: 40px 24px 56px;
+      color: var(--muted);
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(12px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @media (max-width: 780px) {
+      .simulator {
+        grid-template-columns: 1fr;
+      }
+
+      .stats {
+        grid-template-columns: 1fr;
+      }
+
+      header {
+        padding-top: 44px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <div class="badge">Probability & Statistics</div>
+    <h1>Law of Large Numbers</h1>
+    <p class="hero-text">
+      The Law of Large Numbers says that as a sample size grows, the sample
+      average gets closer and closer to the true population average.
+    </p>
+  </header>
+
+  <main>
+    <nav class="tabs">
+      <button class="tab-btn active" data-tab="overview">Overview</button>
+      <button class="tab-btn" data-tab="coin">Coin Flip Demo</button>
+      <button class="tab-btn" data-tab="types">Weak vs Strong LLN</button>
+      <button class="tab-btn" data-tab="myth">Common Myth</button>
+      <button class="tab-btn" data-tab="applications">Applications</button>
+    </nav>
+
+    <section id="overview" class="section active">
+      <div class="grid">
+        <article class="card">
+          <div class="symbol">μ</div>
+          <h2>The Big Idea</h2>
+          <p class="muted">
+            Random results can look messy in the short run, but over many
+            independent trials, their average tends to stabilize near the
+            expected value.
+          </p>
+        </article>
+
+        <article class="card">
+          <div class="symbol">x̄</div>
+          <h2>Sample Average</h2>
+          <p class="muted">
+            The sample average is what you observe from collected data. The LLN
+            explains why larger samples usually give more reliable estimates.
+          </p>
+          <div class="formula">sample average → expected value</div>
+        </article>
+
+        <article class="card">
+          <div class="symbol">∞</div>
+          <h2>As Samples Grow</h2>
+          <p class="muted">
+            With enough observations, early unusual outcomes become less
+            important compared with the total number of trials.
+          </p>
+        </article>
+      </div>
+    </section>
+
+    <section id="coin" class="section">
+      <div class="card simulator">
+        <div>
+          <h2>Interactive Coin Flip Demo</h2>
+          <p class="muted">
+            A fair coin has a true probability of heads equal to 50%.
+            Small samples may wander far away from 50%, but large samples
+            usually move closer.
+          </p>
+
+          <div class="controls">
+            <button class="control-btn" data-flips="1">Flip 1</button>
+            <button class="control-btn" data-flips="10">Flip 10</button>
+            <button class="control-btn" data-flips="100">Flip 100</button>
+            <button class="control-btn" data-flips="1000">Flip 1000</button>
+            <button class="control-btn" id="resetBtn">Reset</button>
+          </div>
+
+          <div class="stats">
+            <div class="stat">
+              <span>Total Flips</span>
+              <strong id="totalFlips">0</strong>
+            </div>
+
+            <div class="stat">
+              <span>Heads</span>
+              <strong id="headsCount">0</strong>
+            </div>
+
+            <div class="stat">
+              <span>Heads Rate</span>
+              <strong id="headsRate">0%</strong>
+            </div>
+          </div>
+
+          <div class="bar-wrap">
+            <div class="bar" id="headsBar"></div>
+          </div>
+
+          <div class="formula">
+            True probability of heads = 0.5
+          </div>
+        </div>
+
+        <div class="coin-area">
+          <div class="coin" id="coin">?</div>
+
+          <div class="chart">
+            <svg viewBox="0 0 500 220" preserveAspectRatio="none">
+              <line class="line-true" x1="0" y1="110" x2="500" y2="110"></line>
+              <polyline class="line-sample" id="sampleLine" points=""></polyline>
+            </svg>
+          </div>
+
+          <p class="muted">
+            Yellow dashed line = true probability, green line = observed heads rate.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section id="types" class="section">
+      <div class="grid">
+        <article class="card">
+          <div class="symbol">W</div>
+          <h3>Weak Law of Large Numbers</h3>
+          <p class="muted">
+            The sample average converges in probability to the expected value.
+            In practical terms, the chance of a large error becomes very small
+            as the sample size increases.
+          </p>
+          <div class="formula">P(|x̄ₙ − μ| &gt; ε) → 0</div>
+        </article>
+
+        <article class="card">
+          <div class="symbol">S</div>
+          <h3>Strong Law of Large Numbers</h3>
+          <p class="muted">
+            The sample average converges almost surely to the expected value.
+            This means convergence happens with probability 1 as the number of
+            observations goes to infinity.
+          </p>
+          <div class="formula">x̄ₙ → μ almost surely</div>
+        </article>
+
+        <article class="card">
+          <div class="symbol">i.i.d.</div>
+          <h3>Independence Matters</h3>
+          <p class="muted">
+            The classic LLN assumes observations are independent and identically
+            distributed. One coin flip should not influence the next.
+          </p>
+        </article>
+      </div>
+    </section>
+
+    <section id="myth" class="section">
+      <div class="grid">
+        <article class="card warning">
+          <div class="symbol">!</div>
+          <h2>Not the Law of Compensation</h2>
+          <p class="muted">
+            The LLN does not mean that short-term results must immediately
+            balance out. Getting several heads in a row does not make tails
+            “due” on the next flip.
+          </p>
+        </article>
+
+        <article class="card">
+          <div class="symbol">🎲</div>
+          <h2>What Actually Happens</h2>
+          <p class="muted">
+            Early deviations become less important because they are diluted by
+            many later observations. The average stabilizes, but the process
+            does not remember previous outcomes.
+          </p>
+        </article>
+
+        <article class="card">
+          <div class="symbol">50%</div>
+          <h2>Fair Coin Reminder</h2>
+          <p class="muted">
+            Every flip of a fair coin still has a 50% chance of heads and a 50%
+            chance of tails, regardless of the previous sequence.
+          </p>
+        </article>
+      </div>
+    </section>
+
+    <section id="applications" class="section">
+      <div class="timeline">
+        <div class="step card">
+          <div class="number">1</div>
+          <div>
+            <h3>Insurance</h3>
+            <p class="muted">
+              Insurers cannot predict exactly what will happen to one person,
+              but with millions of policyholders they can estimate total claims
+              more reliably.
+            </p>
+          </div>
+        </div>
+
+        <div class="step card">
+          <div class="number">2</div>
+          <div>
+            <h3>Casinos</h3>
+            <p class="muted">
+              Casinos rely on small mathematical advantages. Individual players
+              may win in the short term, but many repeated bets make long-term
+              results approach the house edge.
+            </p>
+          </div>
+        </div>
+
+        <div class="step card">
+          <div class="number">3</div>
+          <div>
+            <h3>Polling</h3>
+            <p class="muted">
+              Researchers use random samples to estimate what a larger
+              population thinks. Larger, well-designed samples tend to produce
+              more stable estimates.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    Built as a single-page interactive explainer for the Law of Large Numbers.
+  </footer>
+
+  <script>
+    const tabButtons = document.querySelectorAll(".tab-btn");
+    const sections = document.querySelectorAll(".section");
+
+    tabButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        const selectedTab = button.dataset.tab;
+
+        tabButtons.forEach((btn) => btn.classList.remove("active"));
+        button.classList.add("active");
+
+        sections.forEach((section) => {
+          section.classList.toggle("active", section.id === selectedTab);
+        });
+      });
+    });
+
+    const coin = document.getElementById("coin");
+    const totalFlipsEl = document.getElementById("totalFlips");
+    const headsCountEl = document.getElementById("headsCount");
+    const headsRateEl = document.getElementById("headsRate");
+    const headsBar = document.getElementById("headsBar");
+    const sampleLine = document.getElementById("sampleLine");
+    const resetBtn = document.getElementById("resetBtn");
+    const flipButtons = document.querySelectorAll("[data-flips]");
+
+    let totalFlips = 0;
+    let heads = 0;
+    let history = [];
+
+    function updateDisplay(lastResult = "?") {
+      const rate = totalFlips === 0 ? 0 : heads / totalFlips;
+      const percent = rate * 100;
+
+      coin.textContent = lastResult;
+      totalFlipsEl.textContent = totalFlips.toLocaleString();
+      headsCountEl.textContent = heads.toLocaleString();
+      headsRateEl.textContent = `${percent.toFixed(1)}%`;
+      headsBar.style.width = `${percent}%`;
+
+      updateChart();
+    }
+
+    function updateChart() {
+      if (history.length === 0) {
+        sampleLine.setAttribute("points", "");
+        return;
+      }
+
+      const maxPoints = 120;
+      const visible = history.slice(-maxPoints);
+
+      const points = visible.map((rate, index) => {
+        const x = visible.length === 1
+          ? 0
+          : (index / (visible.length - 1)) * 500;
+
+        const y = 220 - rate * 220;
+
+        return `${x},${y}`;
+      });
+
+      sampleLine.setAttribute("points", points.join(" "));
+    }
+
+    function flipCoin(times) {
+      let last = "?";
+
+      for (let i = 0; i < times; i++) {
+        const isHeads = Math.random() < 0.5;
+
+        totalFlips++;
+
+        if (isHeads) {
+          heads++;
+          last = "H";
+        } else {
+          last = "T";
+        }
+
+        history.push(heads / totalFlips);
+      }
+
+      coin.classList.add("flip");
+
+      setTimeout(() => {
+        coin.classList.remove("flip");
+      }, 250);
+
+      updateDisplay(last);
+    }
+
+    flipButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        flipCoin(Number(button.dataset.flips));
+      });
+    });
+
+    resetBtn.addEventListener("click", () => {
+      totalFlips = 0;
+      heads = 0;
+      history = [];
+      updateDisplay("?");
+    });
+
+    updateDisplay();
+  </script>
+</body>
+</html>

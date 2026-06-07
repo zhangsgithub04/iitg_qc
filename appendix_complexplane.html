@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Teaching Complex Numbers: Constructs, Plane, and Applications</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --panel: #111827;
+      --panel-2: #172033;
+      --text: #e5e7eb;
+      --muted: #a5b4fc;
+      --soft: #cbd5e1;
+      --accent: #38bdf8;
+      --accent-2: #fbbf24;
+      --accent-3: #34d399;
+      --danger: #fb7185;
+      --line: rgba(255,255,255,0.14);
+      --card: rgba(255,255,255,0.055);
+      --shadow: 0 24px 70px rgba(0,0,0,0.35);
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at 20% 0%, rgba(56,189,248,0.20), transparent 32rem),
+        radial-gradient(circle at 85% 15%, rgba(251,191,36,0.14), transparent 30rem),
+        linear-gradient(180deg, #0b1021 0%, var(--bg) 45%, #08111f 100%);
+      color: var(--text);
+      line-height: 1.65;
+    }
+
+    header {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 72px 24px 46px;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 36px;
+      align-items: center;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--accent);
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      font-size: 0.82rem;
+      margin-bottom: 12px;
+    }
+
+    .eyebrow::before {
+      content: "";
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+      background: var(--accent);
+      box-shadow: 0 0 22px var(--accent);
+    }
+
+    h1 {
+      margin: 0 0 18px;
+      font-size: clamp(2.3rem, 6vw, 5rem);
+      line-height: 0.96;
+      letter-spacing: -0.055em;
+    }
+
+    .lead {
+      font-size: clamp(1.05rem, 2vw, 1.28rem);
+      color: var(--soft);
+      max-width: 720px;
+      margin-bottom: 28px;
+    }
+
+    .button-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .btn {
+      color: #07111f;
+      background: var(--accent);
+      text-decoration: none;
+      padding: 12px 18px;
+      border-radius: 999px;
+      font-weight: 800;
+      box-shadow: 0 12px 30px rgba(56,189,248,0.2);
+    }
+
+    .btn.secondary {
+      color: var(--text);
+      background: rgba(255,255,255,0.08);
+      border: 1px solid var(--line);
+      box-shadow: none;
+    }
+
+    .hero-card {
+      background: linear-gradient(145deg, rgba(255,255,255,0.10), rgba(255,255,255,0.035));
+      border: 1px solid var(--line);
+      border-radius: 32px;
+      padding: 28px;
+      box-shadow: var(--shadow);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-card::after {
+      content: "";
+      position: absolute;
+      inset: -120px -80px auto auto;
+      width: 260px;
+      height: 260px;
+      background: radial-gradient(circle, rgba(251,191,36,0.18), transparent 70%);
+      pointer-events: none;
+    }
+
+    .complex-badge {
+      display: grid;
+      place-items: center;
+      width: 100%;
+      aspect-ratio: 1 / 0.76;
+      border-radius: 24px;
+      background: #08111f;
+      border: 1px solid var(--line);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .axis-x, .axis-y {
+      position: absolute;
+      background: rgba(255,255,255,0.25);
+    }
+    .axis-x { height: 1px; left: 9%; right: 9%; top: 50%; }
+    .axis-y { width: 1px; top: 9%; bottom: 9%; left: 50%; }
+
+    .vector {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 35%;
+      height: 3px;
+      transform-origin: left center;
+      transform: rotate(-38deg);
+      background: linear-gradient(90deg, var(--accent), var(--accent-2));
+      border-radius: 999px;
+      box-shadow: 0 0 26px rgba(56,189,248,0.5);
+    }
+    .vector::after {
+      content: "";
+      position: absolute;
+      right: -1px;
+      top: -6px;
+      border-left: 14px solid var(--accent-2);
+      border-top: 7px solid transparent;
+      border-bottom: 7px solid transparent;
+    }
+
+    .point {
+      position: absolute;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--accent-2);
+      left: calc(50% + 27%);
+      top: calc(50% - 22%);
+      box-shadow: 0 0 20px rgba(251,191,36,0.7);
+    }
+
+    .formula-float {
+      position: relative;
+      z-index: 1;
+      font-size: clamp(2.2rem, 5vw, 4.4rem);
+      font-weight: 900;
+      letter-spacing: -0.08em;
+      text-shadow: 0 16px 44px rgba(0,0,0,0.55);
+    }
+
+    .plane-label {
+      position: absolute;
+      color: var(--soft);
+      font-size: 0.9rem;
+      background: rgba(15,23,42,0.72);
+      border: 1px solid var(--line);
+      padding: 4px 9px;
+      border-radius: 999px;
+    }
+    .real-label { right: 8%; top: 52%; }
+    .imag-label { left: 53%; top: 8%; }
+    .z-label { right: 13%; top: 28%; color: var(--accent-2); }
+
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 5;
+      backdrop-filter: blur(16px);
+      background: rgba(8,17,31,0.82);
+      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+    }
+
+    nav .inner {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 10px 24px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    nav a {
+      color: var(--soft);
+      text-decoration: none;
+      padding: 8px 12px;
+      border-radius: 999px;
+      font-weight: 650;
+      font-size: 0.93rem;
+    }
+
+    nav a:hover { background: rgba(255,255,255,0.08); color: white; }
+
+    main {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 42px 24px 90px;
+    }
+
+    section {
+      margin: 34px 0;
+      padding: 32px;
+      background: linear-gradient(145deg, rgba(255,255,255,0.07), rgba(255,255,255,0.025));
+      border: 1px solid var(--line);
+      border-radius: 30px;
+      box-shadow: 0 14px 50px rgba(0,0,0,0.18);
+    }
+
+    h2 {
+      font-size: clamp(1.8rem, 3.2vw, 3rem);
+      line-height: 1.05;
+      letter-spacing: -0.035em;
+      margin: 0 0 16px;
+    }
+
+    h3 {
+      margin-top: 0;
+      font-size: 1.25rem;
+      color: white;
+    }
+
+    p { color: var(--soft); }
+    strong { color: white; }
+    code, .math {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.1);
+      padding: 2px 6px;
+      border-radius: 8px;
+      color: #e0f2fe;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+      margin-top: 22px;
+    }
+
+    .grid.three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+    .card {
+      padding: 22px;
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 22px;
+    }
+
+    .number-line {
+      height: 72px;
+      border-radius: 18px;
+      background: rgba(0,0,0,0.18);
+      border: 1px solid var(--line);
+      position: relative;
+      margin-top: 20px;
+      overflow: hidden;
+    }
+
+    .number-line::before {
+      content: "";
+      position: absolute;
+      left: 8%; right: 8%; top: 50%; height: 2px;
+      background: rgba(255,255,255,0.28);
+    }
+    .tick { position: absolute; top: 42%; width: 2px; height: 16px; background: rgba(255,255,255,0.35); }
+    .tick span { position: absolute; top: 18px; left: -9px; color: var(--soft); font-size: 0.8rem; }
+    .t1 { left: 20%; } .t2 { left: 50%; } .t3 { left: 80%; }
+
+    .plane-box {
+      height: 270px;
+      border-radius: 22px;
+      background:
+        linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px),
+        rgba(0,0,0,0.18);
+      background-size: 36px 36px;
+      border: 1px solid var(--line);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .plane-box .axis-x, .plane-box .axis-y { background: rgba(255,255,255,0.38); }
+    .plane-box .mini-vector {
+      position: absolute;
+      left: 50%; top: 50%; width: 32%; height: 3px;
+      background: linear-gradient(90deg, var(--accent-3), var(--accent));
+      transform-origin: left center;
+      transform: rotate(-32deg);
+      border-radius: 999px;
+    }
+    .mini-vector::after {
+      content: "";
+      position: absolute;
+      right: -2px; top: -6px;
+      border-left: 13px solid var(--accent);
+      border-top: 7px solid transparent;
+      border-bottom: 7px solid transparent;
+    }
+    .projection-x, .projection-y {
+      position: absolute;
+      border-style: dashed;
+      border-color: rgba(251,191,36,0.8);
+    }
+    .projection-x { left: 50%; top: 35%; width: 28%; height: 0; border-width: 1px 0 0 0; }
+    .projection-y { left: 78%; top: 35%; height: 15%; width: 0; border-width: 0 0 0 1px; }
+
+    .callout {
+      border-left: 4px solid var(--accent);
+      background: rgba(56,189,248,0.08);
+      padding: 16px 18px;
+      border-radius: 14px;
+      color: var(--soft);
+      margin: 22px 0 0;
+    }
+
+    .steps {
+      counter-reset: step;
+      display: grid;
+      gap: 14px;
+      margin-top: 18px;
+    }
+
+    .step {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 14px;
+      align-items: start;
+      padding: 18px;
+      background: rgba(255,255,255,0.045);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+    }
+    .step::before {
+      counter-increment: step;
+      content: counter(step);
+      width: 32px;
+      height: 32px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      background: var(--accent);
+      color: #061221;
+      font-weight: 900;
+    }
+
+    .app-list {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+      margin-top: 20px;
+    }
+
+    .app {
+      padding: 20px;
+      border-radius: 20px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.05);
+    }
+    .app .tag {
+      display: inline-block;
+      font-weight: 800;
+      color: #07111f;
+      background: var(--accent-2);
+      border-radius: 999px;
+      padding: 4px 10px;
+      font-size: 0.78rem;
+      margin-bottom: 10px;
+    }
+
+    .quiz {
+      display: grid;
+      gap: 12px;
+      margin-top: 18px;
+    }
+    details {
+      background: rgba(0,0,0,0.16);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 14px 16px;
+    }
+    summary { cursor: pointer; font-weight: 800; color: white; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 18px;
+      overflow: hidden;
+      border-radius: 16px;
+    }
+    th, td {
+      padding: 13px 14px;
+      text-align: left;
+      border-bottom: 1px solid var(--line);
+      vertical-align: top;
+    }
+    th { color: white; background: rgba(255,255,255,0.08); }
+    td { color: var(--soft); background: rgba(255,255,255,0.03); }
+
+    footer {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 0 24px 56px;
+      color: var(--soft);
+    }
+
+    @media (max-width: 860px) {
+      .hero, .grid, .grid.three, .app-list { grid-template-columns: 1fr; }
+      header { padding-top: 48px; }
+      section { padding: 24px; }
+      nav { position: static; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="hero">
+      <div>
+        <div class="eyebrow">Complex numbers for teaching</div>
+        <h1>From math construct to 2D plane intuition</h1>
+        <p class="lead">Complex numbers can be introduced two ways: as an algebraic extension that solves new equations, and as points or arrows on a plane that rotate, scale, and encode two-dimensional structure.</p>
+        <div class="button-row">
+          <a class="btn" href="#construct">Start with the construct</a>
+          <a class="btn secondary" href="#applications">See applications</a>
+        </div>
+      </div>
+      <div class="hero-card" aria-label="Complex plane diagram">
+        <div class="complex-badge">
+          <div class="axis-x"></div>
+          <div class="axis-y"></div>
+          <div class="vector"></div>
+          <div class="point"></div>
+          <div class="plane-label real-label">real axis</div>
+          <div class="plane-label imag-label">imaginary axis</div>
+          <div class="plane-label z-label">z = a + bi</div>
+          <div class="formula-float">a + bi</div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <nav>
+    <div class="inner">
+      <a href="#construct">Construct</a>
+      <a href="#plane">2D Plane</a>
+      <a href="#difference">Difference</a>
+      <a href="#operations">Operations</a>
+      <a href="#applications">Applications</a>
+      <a href="#teaching">Teaching Sequence</a>
+      <a href="#quiz">Quick Checks</a>
+    </div>
+  </nav>
+
+  <main>
+    <section id="construct">
+      <h2>1. Complex numbers as mathematical constructs</h2>
+      <p>A <strong>complex number</strong> is first an algebraic object built to make equations like <span class="math">x² + 1 = 0</span> solvable. We introduce a new symbol <span class="math">i</span> with one defining rule:</p>
+      <p class="math">i² = -1</p>
+      <p>Then every complex number has the form <span class="math">a + bi</span>, where <span class="math">a</span> and <span class="math">b</span> are real numbers. In this view, <span class="math">i</span> is not a mysterious physical quantity. It is a rule-governed construct that extends arithmetic.</p>
+
+      <div class="grid">
+        <div class="card">
+          <h3>Construct mindset</h3>
+          <p>Ask: <strong>What rules does this object obey?</strong> This is the algebraic view. Complex numbers are manipulated by addition, subtraction, multiplication, division, conjugation, and powers.</p>
+        </div>
+        <div class="card">
+          <h3>Why create it?</h3>
+          <p>Because mathematics often extends number systems when old systems cannot solve useful problems: natural numbers, integers, rationals, reals, and then complex numbers.</p>
+        </div>
+      </div>
+
+      <div class="callout"><strong>Teaching point:</strong> Emphasize that “imaginary” does not mean “fake.” It means a new direction in number structure, defined by the rule <span class="math">i² = -1</span>.</div>
+    </section>
+
+    <section id="plane">
+      <h2>2. Complex numbers as points or vectors on a 2D plane</h2>
+      <p>The same number <span class="math">z = a + bi</span> can be represented geometrically. The real part <span class="math">a</span> is horizontal, and the imaginary part <span class="math">b</span> is vertical.</p>
+      <div class="grid">
+        <div class="card">
+          <h3>Real number line</h3>
+          <p>A real number needs one coordinate.</p>
+          <div class="number-line">
+            <div class="tick t1"><span>-1</span></div>
+            <div class="tick t2"><span>0</span></div>
+            <div class="tick t3"><span>1</span></div>
+          </div>
+        </div>
+        <div class="card">
+          <h3>Complex plane</h3>
+          <p>A complex number needs two coordinates: <span class="math">(a,b)</span>.</p>
+          <div class="plane-box">
+            <div class="axis-x"></div>
+            <div class="axis-y"></div>
+            <div class="mini-vector"></div>
+            <div class="projection-x"></div>
+            <div class="projection-y"></div>
+            <div class="plane-label real-label">Re</div>
+            <div class="plane-label imag-label">Im</div>
+            <div class="plane-label z-label">3 + 2i</div>
+          </div>
+        </div>
+      </div>
+
+      <p>In the plane view, a complex number can be described by rectangular coordinates <span class="math">a + bi</span>, or by polar coordinates: magnitude and angle.</p>
+      <p class="math">z = r(cos θ + i sin θ) = re^{iθ}</p>
+      <div class="callout"><strong>Key intuition:</strong> Multiplication by a complex number combines <strong>scaling</strong> and <strong>rotation</strong>. This is the bridge from algebra to geometry.</div>
+    </section>
+
+    <section id="difference">
+      <h2>3. What is the difference between “construct” and “2D plane”?</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>View</th>
+            <th>Main idea</th>
+            <th>Best for teaching</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Mathematical construct</strong></td>
+            <td>A complex number is an algebraic object with the rule <span class="math">i² = -1</span>.</td>
+            <td>Solving equations, manipulating expressions, understanding why complex numbers exist.</td>
+          </tr>
+          <tr>
+            <td><strong>2D plane representation</strong></td>
+            <td>A complex number is a point or vector with horizontal and vertical components.</td>
+            <td>Visualizing magnitude, angle, rotation, waves, signals, and qubit amplitudes.</td>
+          </tr>
+          <tr>
+            <td><strong>Connection</strong></td>
+            <td>They are two representations of the same object.</td>
+            <td>Helping students see that symbols can have geometric meaning.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="operations">
+      <h2>4. Operations: what the plane helps students see</h2>
+      <div class="grid three">
+        <div class="card">
+          <h3>Addition</h3>
+          <p><span class="math">(a+bi)+(c+di)=(a+c)+(b+d)i</span></p>
+          <p>Geometrically, this is vector addition: move horizontally and vertically.</p>
+        </div>
+        <div class="card">
+          <h3>Multiplication by i</h3>
+          <p><span class="math">i(a+bi)= -b + ai</span></p>
+          <p>Geometrically, this rotates the vector 90° counterclockwise.</p>
+        </div>
+        <div class="card">
+          <h3>Magnitude</h3>
+          <p><span class="math">|a+bi| = √(a²+b²)</span></p>
+          <p>This is the distance from the origin to the point in the complex plane.</p>
+        </div>
+      </div>
+
+      <div class="callout"><strong>Mini-demo idea:</strong> Plot <span class="math">1</span>, <span class="math">i</span>, <span class="math">-1</span>, and <span class="math">-i</span>. Then show repeated multiplication by <span class="math">i</span>: 90° rotation each time.</div>
+    </section>
+
+    <section id="applications">
+      <h2>5. Applications of complex numbers</h2>
+      <p>Complex numbers are useful whenever a system has both magnitude and phase, or whenever two coupled quantities are easier to describe as one object.</p>
+
+      <div class="app-list">
+        <div class="app">
+          <span class="tag">Engineering</span>
+          <h3>AC circuits</h3>
+          <p>Voltage and current can oscillate out of phase. Complex numbers make phase shifts and impedance easier to calculate.</p>
+        </div>
+        <div class="app">
+          <span class="tag">Signals</span>
+          <h3>Fourier analysis</h3>
+          <p>Sound, images, and data signals can be decomposed into rotating complex exponentials such as <span class="math">e^{iθ}</span>.</p>
+        </div>
+        <div class="app">
+          <span class="tag">Physics</span>
+          <h3>Waves and oscillations</h3>
+          <p>Complex notation compactly represents amplitude, phase, and interference in wave behavior.</p>
+        </div>
+        <div class="app">
+          <span class="tag">Quantum</span>
+          <h3>Qubits and probability amplitudes</h3>
+          <p>A qubit state uses complex amplitudes, for example <span class="math">α|0⟩ + β|1⟩</span>. The probabilities are related to squared magnitudes: <span class="math">|α|²</span> and <span class="math">|β|²</span>.</p>
+        </div>
+        <div class="app">
+          <span class="tag">Geometry</span>
+          <h3>Rotations and transformations</h3>
+          <p>Multiplying by a unit complex number rotates points in the plane, which is useful in graphics and geometry.</p>
+        </div>
+        <div class="app">
+          <span class="tag">Control</span>
+          <h3>Stability and systems</h3>
+          <p>Complex roots and eigenvalues help describe oscillation, damping, resonance, and stability in dynamic systems.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="teaching">
+      <h2>6. Suggested teaching sequence</h2>
+      <div class="steps">
+        <div class="step"><div><strong>Begin with a problem.</strong><br><span class="soft">Ask students to solve <span class="math">x² + 1 = 0</span>. Real numbers are not enough.</span></div></div>
+        <div class="step"><div><strong>Introduce the rule.</strong><br><span class="soft">Define <span class="math">i² = -1</span>. Treat it like a new algebraic move, not a magic trick.</span></div></div>
+        <div class="step"><div><strong>Build the form.</strong><br><span class="soft">Show that numbers now look like <span class="math">a + bi</span>: one real component and one imaginary component.</span></div></div>
+        <div class="step"><div><strong>Move to the plane.</strong><br><span class="soft">Map <span class="math">a + bi</span> to the point <span class="math">(a,b)</span>. Stress that the plane is a representation, not a different number system.</span></div></div>
+        <div class="step"><div><strong>Use operations visually.</strong><br><span class="soft">Show addition as movement, magnitude as distance, and multiplication by <span class="math">i</span> as rotation.</span></div></div>
+        <div class="step"><div><strong>Connect to applications.</strong><br><span class="soft">Use AC circuits, waves, Fourier analysis, or qubits depending on the course context.</span></div></div>
+      </div>
+    </section>
+
+    <section id="quiz">
+      <h2>7. Quick checks for students</h2>
+      <div class="quiz">
+        <details>
+          <summary>Why is <span class="math">i</span> introduced?</summary>
+          <p>To extend the number system so equations such as <span class="math">x² + 1 = 0</span> have solutions.</p>
+        </details>
+        <details>
+          <summary>What point represents <span class="math">3 - 4i</span>?</summary>
+          <p>The point <span class="math">(3, -4)</span>: 3 units on the real axis and -4 units on the imaginary axis.</p>
+        </details>
+        <details>
+          <summary>What is the magnitude of <span class="math">3 + 4i</span>?</summary>
+          <p><span class="math">|3 + 4i| = √(3² + 4²) = 5</span>.</p>
+        </details>
+        <details>
+          <summary>What does multiplying by <span class="math">i</span> do geometrically?</summary>
+          <p>It rotates a complex number 90° counterclockwise around the origin.</p>
+        </details>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p><strong>Teaching takeaway:</strong> Complex numbers are not “just points” and not “just symbols.” They are algebraic objects whose 2D representation reveals geometry, rotation, magnitude, phase, and many real-world applications.</p>
+  </footer>
+</body>
+</html>
